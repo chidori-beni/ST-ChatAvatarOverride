@@ -432,29 +432,18 @@ function injectChatListButtons() {
 let _listObserver = null;
 function startListObserver() {
     _listObserver?.disconnect();
-    const container = document.querySelector('.welcomePanel')
-        ?? document.querySelector('.welcomeRecent');
-
-    if (!container) {
-        // 容器还没渲染，500ms后重试，最多重试10次
-        if (!startListObserver._retries) startListObserver._retries = 0;
-        if (startListObserver._retries < 10) {
-            startListObserver._retries++;
-            setTimeout(startListObserver, 500);
-        }
-        return;
-    }
-    startListObserver._retries = 0;
-
+    // 直接监听 document.body，范围最大，确保重命名/删除都能捕获
     let debounceTimer = null;
     _listObserver = new MutationObserver(() => {
+        // 只在首页列表存在时才处理
+        if (!document.querySelector('.recentChat')) return;
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             injectChatListButtons();
             applyAllChatListAvatars();
         }, 200);
     });
-    _listObserver.observe(container, { childList: true, subtree: true });
+    _listObserver.observe(document.body, { childList: true, subtree: true });
     console.log('[CAO] 列表监听已启动');
 }
 
