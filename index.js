@@ -428,14 +428,24 @@ function injectChatListButtons() {
 }
 
 // 用 MutationObserver 监听列表变化，动态注入按钮+恢复头像
-// 监听 .welcomePanel（稳定的祖父容器，不会被重命名/删除替换掉）
+// 监听 .welcomePanel（稳定的祖父容器）
 let _listObserver = null;
 function startListObserver() {
     _listObserver?.disconnect();
-    // 优先找 .welcomePanel，找不到就找 .welcomeRecent，再找不到就 body
     const container = document.querySelector('.welcomePanel')
-        ?? document.querySelector('.welcomeRecent')
-        ?? document.body;
+        ?? document.querySelector('.welcomeRecent');
+
+    if (!container) {
+        // 容器还没渲染，500ms后重试，最多重试10次
+        if (!startListObserver._retries) startListObserver._retries = 0;
+        if (startListObserver._retries < 10) {
+            startListObserver._retries++;
+            setTimeout(startListObserver, 500);
+        }
+        return;
+    }
+    startListObserver._retries = 0;
+
     let debounceTimer = null;
     _listObserver = new MutationObserver(() => {
         clearTimeout(debounceTimer);
@@ -445,7 +455,7 @@ function startListObserver() {
         }, 200);
     });
     _listObserver.observe(container, { childList: true, subtree: true });
-    console.log('[CAO] 列表监听已启动，容器:', container.className || 'body');
+    console.log('[CAO] 列表监听已启动');
 }
 
 // ─── 获取当前聊天的 data-file ────────────────────────────────
@@ -610,13 +620,14 @@ async function init() {
     console.log('[CAO] 初始化 v3.0…');
     injectMenuButton();
     registerEvents();
+    // 延长到1500ms确保首页列表渲染完毕再启动Observer
     setTimeout(() => {
         injectChatListButtons();
         applyAllChatListAvatars();
         startListObserver();
         refreshChatBubblesFromMap();
         startChatObserver();
-    }, 700);
+    }, 1500);
     console.log('[CAO] 完成 ✓');
 }
 
