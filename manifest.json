@@ -6,7 +6,7 @@
     "js": "index.js",
     "css": "style.css",
     "author": "chidori",
-    "version": "3.7.0",
+    "version": "3.8.0",
     "homePage": "https://github.com/chidori-beni/ST-ChatAvatarOverride",
     "auto_update": true,
     "description": "为每个聊天窗口单独设置角色头像，不影响角色卡。从输入框左侧扩展菜单打开。"
