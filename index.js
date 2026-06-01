@@ -427,17 +427,28 @@ function injectChatListButtons() {
     });
 }
 
-// 用 MutationObserver 监听列表变化，动态注入按钮
+// 用 MutationObserver 监听列表变化，动态注入按钮+恢复头像
+// 容器是 .recentChatList（已确认）
 let _listObserver = null;
 function startListObserver() {
     _listObserver?.disconnect();
-    const container = document.querySelector('#rm_print_chat_list, .list-group');
-    if (!container) return;
+    const container = document.querySelector('.recentChatList');
+    if (!container) {
+        // 找不到时延迟重试（页面还没渲染完）
+        setTimeout(startListObserver, 500);
+        return;
+    }
+    let debounceTimer = null;
     _listObserver = new MutationObserver(() => {
-        injectChatListButtons();
-        applyAllChatListAvatars();
+        // 防抖：列表频繁变化时只处理最后一次
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            injectChatListButtons();
+            applyAllChatListAvatars();
+        }, 150);
     });
     _listObserver.observe(container, { childList: true, subtree: true });
+    console.log('[CAO] 列表监听已启动');
 }
 
 // ─── 获取当前聊天的 data-file ────────────────────────────────
