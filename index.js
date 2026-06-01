@@ -56,10 +56,7 @@ async function storeInChatMetadata(url) {
 }
 
 // 获取当前聊天的 data-file（存在 chatMetadata 里，方便聊天窗口内读取）
-function getChatDataFile() {
-    const ctx = getCtx();
-    return ctx?.chatMetadata?.['cao_data_file'] ?? null;
-}
+// getChatDataFile 已在上方重新定义
 async function storeChatDataFile(dataFile) {
     const ctx = getCtx();
     if (!ctx || !dataFile) return;
@@ -158,6 +155,12 @@ function openCropper(srcUrl, onDone) {
                             <div class="cao-crop-handle ne"></div>
                             <div class="cao-crop-handle sw"></div>
                             <div class="cao-crop-handle se"></div>
+                            <div class="cao-crop-grid">
+                                <div class="cao-grid-line h1"></div>
+                                <div class="cao-grid-line h2"></div>
+                                <div class="cao-grid-line v1"></div>
+                                <div class="cao-grid-line v2"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -166,7 +169,8 @@ function openCropper(srcUrl, onDone) {
                 <button id="cao_crop_cancel" class="menu_button cao-btn">取消</button>
                 <button id="cao_crop_ratio_free" class="menu_button cao-btn cao-btn-ratio active-ratio">自由</button>
                 <button id="cao_crop_ratio_sq"   class="menu_button cao-btn cao-btn-ratio">1:1</button>
-                <button id="cao_crop_ratio_pt"   class="menu_button cao-btn cao-btn-ratio">3:4</button>
+                <button id="cao_crop_ratio_23"   class="menu_button cao-btn cao-btn-ratio">2:3 ★</button>
+                <button id="cao_crop_ratio_169"  class="menu_button cao-btn cao-btn-ratio">16:9</button>
                 <button id="cao_crop_ok" class="menu_button cao-btn cao-btn-ok">确认裁切</button>
             </div>
         </div>`;
@@ -190,9 +194,10 @@ function openCropper(srcUrl, onDone) {
     img.onload=initBox;
     if(img.complete&&img.naturalWidth)initBox();
 
-    const rf=modal.querySelector('#cao_crop_ratio_free'),rs=modal.querySelector('#cao_crop_ratio_sq'),rp=modal.querySelector('#cao_crop_ratio_pt');
-    function setRatio(r,btn){fixedRatio=r;[rf,rs,rp].forEach(b=>b.classList.remove('active-ratio'));btn.classList.add('active-ratio');if(r!==null){const{l,t,w}=getBox();cropBox.style.height=Math.round(w*r)+'px';}}
-    rf.onclick=()=>setRatio(null,rf);rs.onclick=()=>setRatio(1,rs);rp.onclick=()=>setRatio(4/3,rp);
+    const rf=modal.querySelector('#cao_crop_ratio_free'),rs=modal.querySelector('#cao_crop_ratio_sq'),r23=modal.querySelector('#cao_crop_ratio_23'),r169=modal.querySelector('#cao_crop_ratio_169');
+    const allRatioBtns=[rf,rs,r23,r169];
+    function setRatio(r,btn){fixedRatio=r;allRatioBtns.forEach(b=>b.classList.remove('active-ratio'));btn.classList.add('active-ratio');if(r!==null){const{l,t,w}=getBox();cropBox.style.height=Math.round(w*r)+'px';}}
+    rf.onclick=()=>setRatio(null,rf);rs.onclick=()=>setRatio(1,rs);r23.onclick=()=>setRatio(3/2,r23);r169.onclick=()=>setRatio(9/16,r169);
 
     cropBox.addEventListener('mousedown',e=>{
         if(e.target.classList.contains('cao-crop-handle'))return;
@@ -423,6 +428,20 @@ function startListObserver() {
     _listObserver.observe(container, { childList: true, subtree: true });
 }
 
+// ─── 获取当前聊天的 data-file ────────────────────────────────
+// ctx.getCurrentChatId() 直接返回聊天显示名，和 data-file 完全一致！
+
+function getCurrentDataFile() {
+    const ctx = getCtx();
+    if (!ctx) return null;
+    return ctx.getCurrentChatId?.() ?? null;
+}
+
+// 兼容旧数据：优先用 getCurrentChatId，其次用 chatMetadata 里存的
+function getChatDataFile() {
+    return getCurrentDataFile() ?? getCtx()?.chatMetadata?.['cao_data_file'] ?? null;
+}
+
 // ─── 聊天窗口内：扩展菜单入口 ───────────────────────────────
 
 function injectMenuButton() {
@@ -438,15 +457,16 @@ function injectMenuButton() {
     item.addEventListener('click', e => {
         e.stopPropagation();
         menu.closest('.btn-group')?.querySelector('[data-bs-toggle]')?.click?.();
-        // 聊天窗口内：用 chatMetadata 里存的 data-file
-        const dataFile = getChatDataFile();
-        if (!dataFile) {
-            toastr.warning('请先从首页列表点击🖼按钮设置过一次，或稍等片刻', '聊天窗口独立头像');
-            return;
-        }
-        setTimeout(() => togglePanel(dataFile, item), 80);
+        setTimeout(() => {
+            const dataFile = getChatDataFile();
+            if (!dataFile) {
+                toastr.warning('请先打开一个聊天再设置头像', '聊天窗口独立头像');
+                return;
+            }
+            togglePanel(dataFile, item);
+        }, 80);
     });
-    menu.prepend(item);
+    menu.children[15].after(item);
     console.log('[CAO] extensionsMenu 注入成功');
 }
 
@@ -528,15 +548,13 @@ function registerEvents() {
     const { eventSource, event_types } = ctx;
 
     eventSource.on(event_types.CHAT_CHANGED, () => {
-        setTimeout(async () => {
-            // 把当前聊天的 data-file 同步到 chatMetadata
-            // 此时 characterId 有效，从 chatMetadata 里已有的 cao_data_file 读
-            // 如果没有，说明还没设置过，跳过
+        setTimeout(() => {
+            // getCurrentChatId() 直接返回当前聊天名，无需任何同步
             refreshChatBubblesFromMap();
             startChatObserver();
             injectChatListButtons();
             applyAllChatListAvatars();
-        }, 600);
+        }, 400);
     });
 
     eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, () => {

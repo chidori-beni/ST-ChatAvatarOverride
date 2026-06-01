@@ -131,3 +131,36 @@
 .cao-crop-btns { display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap; }
 .cao-btn-ratio { opacity:.6; }
 .cao-btn-ratio.active-ratio { opacity:1; border-color:var(--SmartThemeBlueColor,#4a90d9) !important; color:var(--SmartThemeBlueColor,#4a90d9) !important; }
+
+/* ─── 裁切框网格线 ─── */
+.cao-crop-grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+/* 横向两条线（三等分） */
+.cao-grid-line {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.35);
+}
+.cao-grid-line.h1 {
+    top: 33.33%;
+    left: 0; right: 0;
+    height: 1px;
+}
+.cao-grid-line.h2 {
+    top: 66.66%;
+    left: 0; right: 0;
+    height: 1px;
+}
+/* 竖向两条线（三等分） */
+.cao-grid-line.v1 {
+    left: 33.33%;
+    top: 0; bottom: 0;
+    width: 1px;
+}
+.cao-grid-line.v2 {
+    left: 66.66%;
+    top: 0; bottom: 0;
+    width: 1px;
+}
