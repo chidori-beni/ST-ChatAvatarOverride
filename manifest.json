@@ -1,0 +1,13 @@
+{
+    "display_name": "聊天窗口独立头像",
+    "loading_order": 10,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "style.css",
+    "author": "For you ♥",
+    "version": "3.0.0",
+    "homePage": "https://github.com/your-name/ST-ChatAvatarOverride",
+    "auto_update": true,
+    "description": "为每个聊天窗口单独设置角色头像，不影响角色卡。从输入框左侧扩展菜单打开。"
+}

@@ -1,0 +1,133 @@
+/* ── Chat Avatar Override style.css v1.7 ── */
+
+/* 浮层面板 */
+#cao_panel {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    width: 360px;
+    background: var(--SmartThemeBlurTintColor, rgba(28,28,36,0.97));
+    border: 1px solid var(--SmartThemeBorderColor, #555);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    backdrop-filter: blur(14px);
+    font-size: 1em;
+    overflow: hidden;
+    user-select: none;
+}
+#cao_panel.cao-visible { display: block; animation: caoIn 0.15s ease; }
+@keyframes caoIn {
+    from { opacity:0; transform:translateY(6px) scale(.97); }
+    to   { opacity:1; transform:none; }
+}
+.cao-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(255,255,255,.05);
+    border-bottom: 1px solid var(--SmartThemeBorderColor,#555);
+    font-weight: 600; font-size: 1.05em; cursor: move;
+}
+.cao-close {
+    background: none; border: none; color: var(--SmartThemeBodyColor);
+    opacity: .6; cursor: pointer; padding: 3px 8px; border-radius: 4px;
+    font-size: 1em; transition: opacity .1s, background .1s;
+}
+.cao-close:hover { opacity:1; background:rgba(255,255,255,.1); }
+.cao-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 11px; }
+.cao-status { text-align: center; font-size: .95em; opacity: .8; margin: 0; }
+.cao-preview-wrap { justify-content: center; }
+.cao-preview-img {
+    width: 110px; height: 140px; object-fit: cover;
+    border-radius: 10px; border: 2px solid var(--SmartThemeBorderColor,#555);
+    box-shadow: 0 2px 10px rgba(0,0,0,.35);
+}
+.cao-hr { border: none; border-top: 1px solid var(--SmartThemeBorderColor,#555); opacity: .3; margin: 2px 0; }
+.cao-group { display: flex; flex-direction: column; gap: 5px; }
+.cao-label { font-size: .88em; font-weight: 600; opacity: .65; letter-spacing: .02em; }
+.cao-row { display: flex; gap: 6px; align-items: center; }
+.cao-url-input { flex: 1; min-width: 0; font-size: .9em !important; padding: 5px 10px !important; }
+.cao-btn { font-size: .9em !important; padding: 5px 12px !important; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.cao-btn-ok { background: var(--SmartThemeBlueColor,#4a90d9) !important; color:#fff !important; border-color:transparent !important; flex-shrink:0; }
+.cao-btn-ok:hover { filter: brightness(1.15); }
+.cao-btn-crop { flex-shrink:0; background:rgba(255,255,255,.08) !important; }
+.cao-btn-crop:hover { background:rgba(255,255,255,.16) !important; }
+.cao-btn-danger { width:100%; justify-content:center; opacity:.75; }
+.cao-btn-danger:not(:disabled):hover { border-color:#e06c6c !important; color:#e06c6c !important; opacity:1; }
+.cao-btn-danger:disabled { opacity:.3; cursor:not-allowed; }
+.cao-hint { font-size:.82em; opacity:.4; font-style:italic; text-align:center; margin:0; }
+#cao_menu_btn:hover { background: var(--SmartThemeHoverColor,rgba(255,255,255,.08)) !important; }
+
+/* ─── 裁切弹窗 ─── */
+#cao_crop_modal {
+    position: fixed; inset: 0; z-index: 20000;
+    display: flex; align-items: center; justify-content: center;
+}
+.cao-crop-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,.78); backdrop-filter: blur(4px);
+}
+.cao-crop-dialog {
+    position: relative; z-index: 1;
+    background: var(--SmartThemeBlurTintColor,rgba(28,28,36,0.98));
+    border: 1px solid var(--SmartThemeBorderColor,#555);
+    border-radius: 14px; padding: 18px;
+    width: min(92vw, 680px);
+    display: flex; flex-direction: column; gap: 12px;
+    box-shadow: 0 16px 48px rgba(0,0,0,.6);
+}
+.cao-crop-title { font-size:1.1em; font-weight:700; text-align:center; }
+.cao-crop-tip   { font-size:0.82em; opacity:.5; text-align:center; }
+
+/* stage：flex 居中展示 wrap */
+.cao-crop-stage {
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; border-radius: 8px;
+    background: repeating-conic-gradient(#666 0% 25%,#444 0% 50%) 0 0/20px 20px;
+    max-height: 58vh;
+}
+
+/* wrap 与图片同尺寸，是坐标系的基准 */
+.cao-crop-wrap {
+    position: relative;
+    display: inline-block;   /* 宽高由 JS 写入，与 img 一致 */
+    flex-shrink: 0;
+}
+.cao-crop-wrap > img {
+    display: block;
+    max-width: min(100%, 640px);
+    max-height: 58vh;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* overlay 完全覆盖 wrap */
+.cao-crop-overlay {
+    position: absolute; inset: 0;
+    pointer-events: none;
+}
+
+/* 裁切框 */
+.cao-crop-box {
+    position: absolute;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,.48);
+    cursor: move;
+    pointer-events: all;
+    box-sizing: border-box;
+}
+
+/* 四角 handle */
+.cao-crop-handle {
+    position: absolute; width:14px; height:14px;
+    background:#fff; border-radius:2px; pointer-events:all;
+}
+.cao-crop-handle.nw { top:-7px;    left:-7px;   cursor:nw-resize; }
+.cao-crop-handle.ne { top:-7px;    right:-7px;  cursor:ne-resize; }
+.cao-crop-handle.sw { bottom:-7px; left:-7px;   cursor:sw-resize; }
+.cao-crop-handle.se { bottom:-7px; right:-7px;  cursor:se-resize; }
+
+/* 底部按钮行 */
+.cao-crop-btns { display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap; }
+.cao-btn-ratio { opacity:.6; }
+.cao-btn-ratio.active-ratio { opacity:1; border-color:var(--SmartThemeBlueColor,#4a90d9) !important; color:var(--SmartThemeBlueColor,#4a90d9) !important; }
