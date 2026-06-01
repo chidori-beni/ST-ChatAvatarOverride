@@ -350,19 +350,29 @@ function showPanel(dataFile, anchorEl) {
     panel.classList.add('cao-visible');
     syncPanelState(dataFile);
 
-    // 定位
-    const anchor = anchorEl ?? document.getElementById('cao_menu_btn');
-    if (anchor && (!panel.dataset.dragged)) {
-        const r = anchor.getBoundingClientRect();
+    // 定位：手机端居中，PC端锚点附近
+    const isMobile = window.innerWidth < 600 || ('ontouchstart' in window);
+    if (isMobile) {
+        // 手机：水平居中，垂直居中偏上
         const pw = panel.offsetWidth || 360;
-        const ph = panel.offsetHeight || 300;
-        let left = r.left + r.width/2 - pw/2;
-        left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
-        // 优先显示在锚点上方，不够则显示在下方
-        let top = r.top - ph - 8;
-        if (top < 8) top = r.bottom + 8;
-        panel.style.left = left + 'px';
-        panel.style.top  = top  + 'px';
+        const ph = panel.offsetHeight || 400;
+        panel.style.left = Math.max(8, (window.innerWidth - pw) / 2) + 'px';
+        panel.style.top  = Math.max(8, (window.innerHeight - ph) / 2 - 40) + 'px';
+        panel.style.maxHeight = (window.innerHeight - 32) + 'px';
+        panel.style.overflowY = 'auto';
+    } else {
+        const anchor = anchorEl ?? document.getElementById('cao_menu_btn');
+        if (anchor && (!panel.dataset.dragged)) {
+            const r = anchor.getBoundingClientRect();
+            const pw = panel.offsetWidth || 360;
+            const ph = panel.offsetHeight || 300;
+            let left = r.left + r.width/2 - pw/2;
+            left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
+            let top = r.top - ph - 8;
+            if (top < 8) top = r.bottom + 8;
+            panel.style.left = left + 'px';
+            panel.style.top  = top  + 'px';
+        }
     }
 }
 
@@ -466,7 +476,7 @@ function injectMenuButton() {
             togglePanel(dataFile, item);
         }, 80);
     });
-    menu.children[15].after(item);
+    menu.prepend(item);
     console.log('[CAO] extensionsMenu 注入成功');
 }
 
@@ -508,21 +518,41 @@ function fileToDataUrl(file) {
 function makeDraggable(el, handle) {
     let dragging=false,startX,startY,startL,startT;
     handle.style.cursor='move';
-    handle.addEventListener('mousedown',e=>{
-        if(e.button!==0)return;
-        dragging=true;startX=e.clientX;startY=e.clientY;
+
+    function dragStart(cx, cy) {
+        dragging=true;startX=cx;startY=cy;
         startL=parseInt(el.style.left)||0;startT=parseInt(el.style.top)||0;
         el.dataset.dragged='1';
-        e.preventDefault();
-    });
-    document.addEventListener('mousemove',e=>{
+    }
+    function dragMove(cx, cy) {
         if(!dragging)return;
-        let nl=startL+(e.clientX-startX),nt=startT+(e.clientY-startY);
+        let nl=startL+(cx-startX),nt=startT+(cy-startY);
         nl=Math.max(0,Math.min(nl,window.innerWidth-el.offsetWidth));
         nt=Math.max(0,Math.min(nt,window.innerHeight-el.offsetHeight));
         el.style.left=nl+'px';el.style.top=nt+'px';
+    }
+
+    // 鼠标事件
+    handle.addEventListener('mousedown',e=>{
+        if(e.button!==0)return;
+        dragStart(e.clientX,e.clientY);
+        e.preventDefault();
     });
+    document.addEventListener('mousemove',e=>dragMove(e.clientX,e.clientY));
     document.addEventListener('mouseup',()=>{dragging=false;});
+
+    // 触摸事件（手机）
+    handle.addEventListener('touchstart',e=>{
+        const t=e.touches[0];
+        dragStart(t.clientX,t.clientY);
+        e.preventDefault();
+    },{passive:false});
+    handle.addEventListener('touchmove',e=>{
+        const t=e.touches[0];
+        dragMove(t.clientX,t.clientY);
+        e.preventDefault();
+    },{passive:false});
+    handle.addEventListener('touchend',()=>{dragging=false;});
 }
 
 // ─── Observer：聊天气泡 ──────────────────────────────────────
