@@ -311,7 +311,9 @@ function ensurePanel() {
         el.querySelector('#cao_crop_btn').style.display = 'none';
         await doApply(_panelDataFile, null);
     };
-    el.querySelector('.cao-close').onclick = hidePanel;
+    const closeBtn = el.querySelector('.cao-close');
+    closeBtn.addEventListener('click', e => { e.stopPropagation(); hidePanel(); });
+    closeBtn.addEventListener('touchend', e => { e.stopPropagation(); e.preventDefault(); hidePanel(); });
     makeDraggable(el, el.querySelector('#cao_drag_handle'));
 }
 
@@ -476,7 +478,7 @@ function injectMenuButton() {
             togglePanel(dataFile, item);
         }, 80);
     });
-    menu.children[15].after(item);
+    menu.children[15]?.after(item) ?? menu.append(item);
     console.log('[CAO] extensionsMenu 注入成功');
 }
 
