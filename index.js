@@ -476,7 +476,7 @@ function injectMenuButton() {
             togglePanel(dataFile, item);
         }, 80);
     });
-    menu.prepend(item);
+    menu.children[15].after(item);
     console.log('[CAO] extensionsMenu 注入成功');
 }
 
