@@ -467,6 +467,13 @@ function injectMenuButton() {
     if (document.getElementById('cao_menu_btn')) return;
     const menu = document.getElementById('extensionsMenu');
     if (!menu) { setTimeout(injectMenuButton, 1000); return; }
+
+    // children[15] 可能还没渲染出来，等待重试
+    if (!menu.children[15]) {
+        setTimeout(injectMenuButton, 500);
+        return;
+    }
+
     const item = document.createElement('div');
     item.id = 'cao_menu_btn';
     item.className = 'list-group-item';
@@ -485,8 +492,15 @@ function injectMenuButton() {
             togglePanel(dataFile, item);
         }, 80);
     });
-    menu.children[15].after(item);
-    console.log('[CAO] extensionsMenu 注入成功');
+
+    try {
+        menu.children[15].after(item);
+        console.log('[CAO] extensionsMenu 注入成功');
+    } catch(e) {
+        // 位置不对时兜底 append 到末尾
+        menu.appendChild(item);
+        console.log('[CAO] extensionsMenu 注入成功（兜底）');
+    }
 }
 
 // ─── 核心：doApply ───────────────────────────────────────────
